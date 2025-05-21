@@ -16,6 +16,7 @@ public class Engine {
         supervisorThread.start();
         try {
             supervisorThread.join();
+            //programThread.join();
         } catch (InterruptedException e){
             System.out.println("Engine terminated:");
         }
