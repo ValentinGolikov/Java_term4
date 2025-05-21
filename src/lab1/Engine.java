@@ -1,24 +1,23 @@
 package lab1;
 
-enum ProgramState {
-    UNKNOWN, STOPPING, RUNNING, FATAL_ERROR
-}
-
 public class Engine {
     public static void main(String[] args) {
-        AbstractProgram program = new AbstractProgram(100, 1000);
+        AbstractProgram program = new AbstractProgram(1000, 3000);
         Thread programThread = new Thread(program);
-        programThread.setDaemon(true);
-        programThread.start();
 
         Supervisor supervisor = new Supervisor(program);
         Thread supervisorThread = new Thread(supervisor);
+
         supervisorThread.start();
+        programThread.start();
+
         try {
             supervisorThread.join();
-            //programThread.join();
-        } catch (InterruptedException e){
-            System.out.println("Engine terminated:");
+            programThread.join();
+        } catch(InterruptedException e){
+            Thread.currentThread().interrupt();
+            System.out.println("Engine terminated: " + e);
         }
+
     }
 }
