@@ -1,7 +1,5 @@
 package lab1;
 
-
-
 public class Supervisor implements Runnable {
     private final AbstractProgram program;
     private boolean running = true;
@@ -10,9 +8,23 @@ public class Supervisor implements Runnable {
         this.program = program;
     }
 
+    public void startAbstractProgram() {
+        synchronized (program.monitor){
+            System.out.println("Supervisor: Перезапускаю...");
+            program.setState(ProgramState.RUNNING);
+        }
+    }
+
+    public void stopAbstractProgram() {
+        synchronized (program.monitor){
+            program.setState(ProgramState.FATAL_ERROR);
+        }
+    }
+
     public void stopSupervisor() {
         synchronized (program.monitor){
             this.running = false;
+            program.running = false;
             program.monitor.notifyAll();
         }
     }
@@ -27,12 +39,11 @@ public class Supervisor implements Runnable {
                 try {
                     switch(state) {
                         case STOPPING:
-                            System.out.println("Supervisor: Перезапускаю...");
-                            program.setState(ProgramState.RUNNING);
+                            startAbstractProgram();
+                            //stopAbstractProgram();
                             break;
                         case FATAL_ERROR:
                             System.out.println("Supervisor: Завершение работы абстрактной программы...");
-                            program.stopAbstractProgram();
                             stopSupervisor();
                             break;
                     }

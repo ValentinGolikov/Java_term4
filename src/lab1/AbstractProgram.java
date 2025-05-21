@@ -2,12 +2,16 @@ package lab1;
 
 import java.util.Random;
 
+enum ProgramState {
+    UNKNOWN, STOPPING, RUNNING, FATAL_ERROR
+}
+
 public class AbstractProgram implements Runnable {
     private ProgramState state;                     //состояние абстрактной программы
     private final Random random = new Random();     //рандомайзер
     private final int minInterval;                  //минимальный интервал рандомайзера
     private final int maxInterval;                  //максимальный интервал рандомайзера
-    private boolean running = true;                //работает ли абстрактная программа
+    public boolean running = true;                //работает ли абстрактная программа
     private boolean flag = false;
     public final Object monitor = new Object();
 
@@ -30,13 +34,7 @@ public class AbstractProgram implements Runnable {
         synchronized (monitor) {
             this.state = state;
             flag = true;
-            monitor.notifyAll();
-        }
-    }
-
-    public void stopAbstractProgram() {
-        synchronized (monitor) {
-            running = false;
+            System.out.println("AbstractProgram: Состояние изменено");
             monitor.notifyAll();
         }
     }
@@ -44,27 +42,34 @@ public class AbstractProgram implements Runnable {
     @Override
     public void run(){
         while (running){
-            try {
-                int interval = minInterval + random.nextInt(maxInterval - minInterval + 1);
-
-                Thread.sleep(interval);
-
-                //случайное изменение состояния
-                synchronized (monitor){
-                    if (!flag) {
-                        ProgramState newState = ProgramState.values()[random.nextInt(ProgramState.values().length)];
-                        //предотвращаем изменение state на UNKNOWN
-                        while (newState == ProgramState.UNKNOWN) {
-                            newState = ProgramState.values()[random.nextInt(ProgramState.values().length)];
-                        }
-
-                        //записываем новое состояние программы
-                        state = newState;
-                        if (running) {
-                            System.out.println("AbstractProgram: Состояние изменено");
-                        }
+            Thread daemonThread = new Thread(() -> {
+                if (!flag) {
+                    ProgramState newState = ProgramState.values()[random.nextInt(ProgramState.values().length)];
+                    while (newState == ProgramState.UNKNOWN) {
+                        newState = ProgramState.values()[random.nextInt(ProgramState.values().length)];
                     }
-                    flag = false;
+                    state = newState;
+                    if (running) {
+                        System.out.println("AbstractProgram: Состояние изменено");
+                    }
+                    try {
+                        int interval = minInterval + random.nextInt(maxInterval - minInterval + 1);
+                        Thread.sleep(interval);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        System.out.println("AbstractProgram: Прерывание...");
+                    }
+                }
+                flag = false;
+            });
+
+            daemonThread.setDaemon(true);
+            daemonThread.start();
+
+
+            try {
+                synchronized (monitor){
+                    Thread.sleep(1000);
                     monitor.notifyAll();        //уведомляем супервизор об изменении состояния
                 }
 
