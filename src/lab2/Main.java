@@ -16,8 +16,8 @@ public class Main {
         MessageQueue queue = new MessageQueue();
         AtomicInteger activeWriters = new AtomicInteger(threadCount);
 
-        ThreadFactory writerThreadFactory = new CustomThreadFactory("WriterThreadFromIlyuha");
-        ThreadFactory readerThreadFactory = new CustomThreadFactory("ReaderThreadFromIlyuha");
+        ThreadFactory writerThreadFactory = new CustomThreadFactory("WriterThread");
+        ThreadFactory readerThreadFactory = new CustomThreadFactory("ReaderThread");
 
         ExecutorService writerExecutor = Executors.newFixedThreadPool(threadCount, writerThreadFactory);
         ExecutorService readerExecutor = Executors.newFixedThreadPool(threadCount, readerThreadFactory);
