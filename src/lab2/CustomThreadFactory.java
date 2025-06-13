@@ -13,6 +13,8 @@ class CustomThreadFactory implements ThreadFactory {
 
     @Override
     public Thread newThread(Runnable r) {
-        return new Thread(r, namePrefix + "-" + threadNumber.getAndIncrement());
+        Thread thread = new Thread(r, namePrefix + "-" + threadNumber.getAndIncrement());
+        thread.setDaemon(false);
+        return thread;
     }
 }

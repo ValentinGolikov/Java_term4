@@ -1,19 +1,25 @@
 package lab2;
 
-import java.util.concurrent.ArrayBlockingQueue;
-
 class MessageReader implements Runnable {
-    private final ArrayBlockingQueue<String> queue;
+    private final MessageQueue queue;
+    private final String readerName;
 
-    public MessageReader(ArrayBlockingQueue<String> queue) {
+    public MessageReader(MessageQueue queue, String readerName) {
         this.queue = queue;
+        this.readerName = readerName;
     }
 
     @Override
     public void run() {
         try {
-            String message = queue.take();
-            System.out.println(Thread.currentThread().getName() + " get: " + message);
+            while (true) {
+                String message = queue.take();
+                if ("[STOP]".equals(message)) {
+                    System.out.println(readerName + " получил сигнал завершения");
+                    break;
+                }
+                System.out.println(readerName + " получил: " + message);
+            }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
